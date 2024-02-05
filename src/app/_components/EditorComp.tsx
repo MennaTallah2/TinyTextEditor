@@ -1,6 +1,5 @@
 import React, { useRef } from "react";
 import { Editor } from "@tinymce/tinymce-react";
-import { TinyMCE } from "tinymce";
 
 export default function EditorComp() {
   const editorRef = useRef<any>();
@@ -12,7 +11,9 @@ export default function EditorComp() {
   return (
     <div className="w-full h-full">
       <Editor
-        tinymceScriptSrc={"http://localhost:3000/" + "tinymce/tinymce.min.js"}
+        tinymceScriptSrc={
+          process.env.NEXT_PUBLIC_BASE_URL + "tinymce/tinymce.min.js"
+        }
         onInit={(evt, editor) => (editorRef.current = editor)}
         initialValue=""
         init={{
@@ -39,14 +40,16 @@ export default function EditorComp() {
             input.addEventListener("change", (e: any) => {
               const file = e.target.files[0];
               const reader = new FileReader();
+
               reader.addEventListener("load", () => {
-                const id = "blobid" + new Date().getTime();
-                const blobCache = (tinymce as TinyMCE).activeEditor.editorUpload
-                  .blobCache;
-                const base64 = reader.result.split(",")[1];
-                const blobInfo = blobCache.create(id, file, base64);
-                blobCache.add(blobInfo);
-                cb(blobInfo.blobUri(), { title: file.name });
+                if (reader.result) {
+                  const id = "blobid" + new Date().getTime();
+                  const blobCache = editorRef?.current.editorUpload.blobCache;
+                  const base64 = (reader.result as string).split(",")[1];
+                  const blobInfo = blobCache.create(id, file, base64);
+                  blobCache.add(blobInfo);
+                  cb(blobInfo.blobUri(), { title: file.name });
+                }
               });
               reader.readAsDataURL(file);
             });
