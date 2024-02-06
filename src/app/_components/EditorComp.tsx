@@ -17,9 +17,7 @@ export default function EditorComp() {
       </div>
       <Editor
         id="tiny-text-editor-next"
-        tinymceScriptSrc={
-          process.env.NEXT_PUBLIC_BASE_URL + "/tinymce/tinymce.min.js"
-        }
+        tinymceScriptSrc={"./tinymce/tinymce.min.js"}
         onInit={(evt, editor) => (editorRef.current = editor)}
         initialValue=""
         init={{
