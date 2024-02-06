@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+
 import { Editor } from "@tinymce/tinymce-react";
 
 export default function EditorComp() {
@@ -9,22 +10,28 @@ export default function EditorComp() {
     }
   };
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full items-center flex flex-col gap-5">
+      <div className="w-full p-3 text-center font-bold text-lg text-gray-600">
+        Your text editor
+      </div>
       <Editor
+        id="tiny-text-editor-next"
         tinymceScriptSrc={
-          process.env.NEXT_PUBLIC_BASE_URL + "/tinymce/tinymce.min.js"
+          process.env.NEXT_PUBLIC_BASE_URL + "tinymce/tinymce.min.js"
         }
         onInit={(evt, editor) => (editorRef.current = editor)}
         initialValue=""
         init={{
+          statusbar: false,
+          promotion: false,
           height: 500,
           menubar: true,
-          plugins: ["table", "image", "code"],
+          plugins: ["table", "image", "code", "anchor"],
           toolbar:
-            "undo redo | blocks | link image | code | ßtable " +
-            "bold italic forecolor | alignleft aligncenter " +
-            "alignright alignjustify | bullist numlist outdent indent | " +
-            "removeformat | help",
+            "undo redo | blocks | link image | code | table | anchor" +
+            ("bold italic forecolor | alignleft aligncenter " +
+              "alignright alignjustify | bullist numlist outdent indent | " +
+              "removeformat | help"),
           table_toolbar:
             "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol",
           content_style:
@@ -58,7 +65,7 @@ export default function EditorComp() {
           },
         }}
       />
-      <button className="m-3 bg-slate-100 p-2 rounded-sm " onClick={log}>
+      <button className="m-3 bg-slate-100 p-2 rounded-sm  " onClick={log}>
         Log editor content
       </button>
     </div>
