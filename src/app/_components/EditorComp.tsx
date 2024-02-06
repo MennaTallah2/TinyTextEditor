@@ -1,9 +1,10 @@
 import React, { useRef } from "react";
+import { Editor as CustomEditor } from "tinymce";
 
 import { Editor } from "@tinymce/tinymce-react";
 
 export default function EditorComp() {
-  const editorRef = useRef<any>();
+  const editorRef = useRef<CustomEditor | null>();
   const log = () => {
     if (editorRef.current) {
       console.log(editorRef.current.getContent());
@@ -17,7 +18,7 @@ export default function EditorComp() {
       <Editor
         id="tiny-text-editor-next"
         tinymceScriptSrc={
-          process.env.NEXT_PUBLIC_BASE_URL + "tinymce/tinymce.min.js"
+          process.env.NEXT_PUBLIC_BASE_URL + "/tinymce/tinymce.min.js"
         }
         onInit={(evt, editor) => (editorRef.current = editor)}
         initialValue=""
@@ -49,9 +50,9 @@ export default function EditorComp() {
               const reader = new FileReader();
 
               reader.addEventListener("load", () => {
-                if (reader.result) {
+                if (reader.result && editorRef.current) {
                   const id = "blobid" + new Date().getTime();
-                  const blobCache = editorRef?.current.editorUpload.blobCache;
+                  const blobCache = editorRef.current.editorUpload.blobCache;
                   const base64 = (reader.result as string).split(",")[1];
                   const blobInfo = blobCache.create(id, file, base64);
                   blobCache.add(blobInfo);
