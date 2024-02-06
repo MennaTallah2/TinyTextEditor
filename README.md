@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Getting Started with hosting tinymce package
 
-## Getting Started
+- Install the following packages.
 
-First, run the development server:
+[` npm install --save tinymce @tinymce/tinymce-react fs-extra `]
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Setup a [postinstall] script to copy TinyMCE to the main directory of the project for hosting
+
+```javascript [postinstall.js]
+const fse = require("fs-extra");
+const path = require("path");
+const topDir = __dirname;
+fse.emptyDirSync(path.join(topDir, "public", "tinymce"));
+fse.copySync(
+  path.join(topDir, "node_modules", "tinymce"),
+  path.join(topDir, "public", "tinymce"),
+  { overwrite: true }
+);
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+###
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```package.json
+{
+  "scripts": {
+    "postinstall": "node ./postinstall.js"
+  }
+}
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+###
 
-## Learn More
+```.gitignore
+/public/tinymce/
+```
 
-To learn more about Next.js, take a look at the following resources:
+-Using a text editor
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```typescript - Nextjs EditorComponent.tsx
+import React, { useRef } from "react";
+import { Editor as CustomEditor } from "tinymce";
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+import { Editor } from "@tinymce/tinymce-react";
 
-## Deploy on Vercel
+export default function EditorComponent() {
+  const editorRef = useRef<CustomEditor | null>();
+  const log = () => {
+    if (editorRef.current) {
+      console.log(editorRef.current.getContent());
+    }
+  };
+  return (
+    <div className="w-full h-full items-center flex flex-col gap-5">
+      <div className="w-full p-3 text-center font-bold text-lg text-gray-600">
+        Your text editor
+      </div>
+      <Editor
+        id="tiny-text-editor-next"
+        tinymceScriptSrc={"./tinymce/tinymce.min.js"}
+        onInit={(evt, editor) => (editorRef.current = editor)}
+        initialValue=""
+        init={{
+          statusbar: false,
+          promotion: false,
+          height: 500,
+          menubar: true,
+          plugins: ["table", "image", "code", "anchor"],
+          toolbar:
+            "undo redo | blocks | link image | code | table | anchor" +
+            ("bold italic forecolor | alignleft aligncenter " +
+              "alignright alignjustify | bullist numlist outdent indent | " +
+              "removeformat | help"),
+          table_toolbar:
+            "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol",
+          content_style:
+            "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+          table_appearance_options: false,
+          file_picker_types: "image",
+          image_title: true,
+          automatic_uploads: true,
+          file_picker_callback: (cb, value, meta) => {
+            const input = document.createElement("input");
+            input.setAttribute("type", "file");
+            input.setAttribute("accept", "image/*");
+            input.addEventListener("change", (e: any) => {
+              const file = e.target.files[0];
+              const reader = new FileReader();
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+              reader.addEventListener("load", () => {
+                if (reader.result && editorRef.current) {
+                  const id = "blobid" + new Date().getTime();
+                  const blobCache = editorRef.current.editorUpload.blobCache;
+                  const base64 = (reader.result as string).split(",")[1];
+                  const blobInfo = blobCache.create(id, file, base64);
+                  blobCache.add(blobInfo);
+                  cb(blobInfo.blobUri(), { title: file.name });
+                }
+              });
+              reader.readAsDataURL(file);
+            });
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+            input.click();
+          },
+        }}
+      />
+      <button className="m-3 bg-slate-100 p-2 rounded-sm  " onClick={log}>
+        Log editor content
+      </button>
+    </div>
+  );
+}
+```
