@@ -12,7 +12,7 @@ export default function EditorComp() {
     <div className="w-full h-full">
       <Editor
         tinymceScriptSrc={
-          process.env.NEXT_PUBLIC_BASE_URL + "tinymce/tinymce.min.js"
+          process.env.NEXT_PUBLIC_BASE_URL + "/tinymce/tinymce.min.js"
         }
         onInit={(evt, editor) => (editorRef.current = editor)}
         initialValue=""
